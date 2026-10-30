@@ -66,6 +66,8 @@ All structured replies use strict JSON schemas, and every ID the model returns i
 | Restaurants within budget by Qloo price data | 16 of 20 | 4 of 4 |
 | Average Qloo taste match | 85% | 88% |
 
+It is also live for your own plan: under any plan, **Compare with Nemotron alone** sends the same request and taste to Nemotron Ultra without Qloo, checks each suggestion in Qloo, and shows both side by side (6 per minute per IP).
+
 ### Other Nebius tools
 
 Only Token Factory is used. The API is hosted on Render and the page on Vercel (below).
@@ -180,9 +182,10 @@ client/   Vite + React page
                                TasteHistoryChart, GroundingBars, GroundingPage
   public/grounding.json        Latest grounding scoreboard (written by `npm run eval`)
 server/   Express API
-  src/routes/plan.ts          POST /api/plan, /api/replan, /api/taste, /api/snap, /api/memory; GET /api/search, /api/presets
+  src/routes/plan.ts          POST /api/plan, /api/replan, /api/taste, /api/snap, /api/memory, /api/compare-alone; GET /api/search, /api/presets
   src/services/moodAgent.ts   Tool-calling mood agent → Qloo tags
   src/services/snap.ts        Photo → Super VL → Qloo matches
+  src/services/grounding.ts      Nemotron-alone answers checked in Qloo (live compare + npm run eval)
   src/services/tasteInsights.ts  Taste words + where two tastes meet (Qloo tags + compare)
   src/services/tasteMap.ts    Toronto taste heatmap (Qloo) → hotspot + area scores
   src/services/memory.ts      Thumbs → taste-memory notes

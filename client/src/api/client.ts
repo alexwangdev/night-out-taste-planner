@@ -119,6 +119,30 @@ export function snapTaste(image: string): Promise<SnapResult> {
   return post<SnapResult>("/api/snap", { image });
 }
 
+export interface AloneCheck {
+  name: string;
+  verified: boolean;
+  echo?: boolean;
+  closed?: boolean;
+  matchedName?: string;
+  claimedCostCad?: number;
+  qlooEstimateCad?: number;
+  fitsBudget?: boolean;
+  tasteMatch?: number;
+}
+
+export interface CompareAloneResult {
+  modelAlone: { movie: AloneCheck; restaurants: AloneCheck[]; artists: AloneCheck[] };
+  budgetCad: number;
+  model: string;
+  ms: number;
+}
+
+/** The same request answered by the pick model with no Qloo grounding, each suggestion checked in Qloo. */
+export function compareAlone(prompt: string, profiles?: TasteProfile[], budgetCad?: number): Promise<CompareAloneResult> {
+  return post<CompareAloneResult>("/api/compare-alone", { prompt, profiles, budgetCad });
+}
+
 /** Qloo's "in a few words" for each profile, plus where two tastes meet. */
 export function requestTaste(profiles: TasteProfile[]): Promise<{ words: string[][]; overlap?: Overlap }> {
   return post("/api/taste", { profiles });

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ApiError, fetchPresets, requestMemory, requestPlan, requestReplan, requestTaste } from "./api/client";
 import { AgentTrace } from "./components/AgentTrace";
 import { ExamplePrompts } from "./components/ExamplePrompts";
+import { GroundingCompare } from "./components/GroundingCompare";
 import { GroundingPage } from "./components/GroundingPage";
 import { PlanCard, RETRY_MESSAGE, type Thumb } from "./components/PlanCard";
 import { MoodChips } from "./components/MoodChips";
@@ -384,6 +385,9 @@ export function App() {
               ))}
             </div>
             <TasteMap area={result.area} duo={!!result.plan.dinner.ok && !!(result.plan.dinner.card as any).matches?.length} />
+            {!busy ? <GroundingCompare
+                key={[result.plan.movie.ok ? result.plan.movie.card.id : "-", result.plan.dinner.ok ? result.plan.dinner.card.id : "-", result.plan.playlist.ok ? result.plan.playlist.card.title : "-", activeProfiles.length].join("|")}
+                prompt={prompt} result={result} profiles={profilesForRequest} budgetOverride={budgetOverride} /> : null}
             {!busy ? <AgentTrace steps={trace} live={false} /> : null}
             {disliked.length ? (
               <div className="replan-bar">

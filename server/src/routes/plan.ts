@@ -1,6 +1,9 @@
 import express, { Router, type Request, type Response } from "express";
 import { defaultProfile, presets } from "../data/profile.js";
-import { memoryLimiter, planLimiter, searchLimiter, snapLimiter, tasteLimiter } from "../middleware/rateLimit.js";
+import { compareLimiter, memoryLimiter, planLimiter, searchLimiter, snapLimiter, tasteLimiter } from "../middleware/rateLimit.js";
+import { parseBudget } from "../services/budget.js";
+import { modelAloneChecked } from "../services/grounding.js";
+import { modelLabel, models } from "../services/nemotron.js";
 import { compareTastes, describeTaste } from "../services/tasteInsights.js";
 import { writeMemory } from "../services/memory.js";
 import { snapTaste } from "../services/snap.js";
@@ -209,6 +212,29 @@ planRouter.post("/taste", tasteLimiter, async (req, res) => {
     res.json({ words, overlap });
   } catch (err) {
     console.error(`[taste] ${err instanceof Error ? err.message : err}`);
+    res.status(502).json({ error: "taste_service_unavailable" });
+  }
+});
+
+/**
+ * Live grounding check for one plan: the same prompt and taste(s) answered by the pick model with no Qloo
+ * grounding, every suggestion then checked in Qloo. The grounded side is the plan already on screen.
+ */
+planRouter.post("/compare-alone", compareLimiter, async (req, res) => {
+  let input;
+  try {
+    input = readPlanBody(req);
+  } catch (err) {
+    if (err instanceof BadRequest) return void res.status(400).json({ error: "bad_request", message: err.message });
+    throw err;
+  }
+  const budgetCad = input.budgetCad ?? parseBudget(input.prompt).budgetCad;
+  const t = Date.now();
+  try {
+    const modelAlone = await modelAloneChecked(input.prompt, input.profiles, budgetCad);
+    res.json({ modelAlone, budgetCad, model: modelLabel(models().select), ms: Date.now() - t });
+  } catch (err) {
+    console.error(`[compare-alone] ${err instanceof Error ? err.message : err}`);
     res.status(502).json({ error: "taste_service_unavailable" });
   }
 });

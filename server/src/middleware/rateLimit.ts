@@ -43,6 +43,18 @@ export const tasteLimiter = rateLimit({
   },
 });
 
+/** "Compare with Nemotron alone": one model call plus ~7 Qloo lookups each. */
+export const compareLimiter = rateLimit({
+  windowMs: 60_000,
+  limit: 6,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  keyGenerator: (req: Request) => ipKeyGenerator(req.ip ?? "unknown"),
+  handler: (_req, res) => {
+    res.status(429).json({ error: "rate_limited" });
+  },
+});
+
 /** Photo uploads run a vision model: keep them scarce. */
 export const snapLimiter = rateLimit({
   windowMs: 60_000,

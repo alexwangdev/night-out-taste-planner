@@ -1534,3 +1534,28 @@ details.trace summary {
   max-width: 640px;
   margin: 0 auto;
 }
+
+/* Live "Compare with Nemotron alone" */
+.compare-cta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 22px;
+}
+
+.compare h2 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+.g-kind {
+  display: inline-block;
+  min-width: 56px;
+  color: var(--faint);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
