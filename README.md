@@ -1,5 +1,7 @@
 # Cozy Night Planner
 
+**Try it live: https://night-out-taste-planner.vercel.app** · API: https://night-out-taste-planner.onrender.com (free tier — if the first plan is slow, open [`/health`](https://night-out-taste-planner.onrender.com/health) and wait for `{"ok":true}`; it wakes in about a minute).
+
 One prompt plans your whole evening, from your taste: a movie, a Toronto dinner spot, and a playlist that fit together, each with a one-line reason tied to what you've liked before. Thumbs-down any pick and **Re-plan** — only that pick changes.
 
 **What makes it Qloo-powered**
@@ -77,11 +79,6 @@ Only Token Factory is used. The API is hosted on Render and the page on Vercel (
 - **Latency:** most calls returned in 1–3 s; the slowest part of a plan is the taste-graph lookups, not the model.
 - **Docs vs. behaviour:** the chat-completions reference says only `json_object`/`text` response formats are supported, but strict `json_schema` worked in every call we made; and the documented reasoning switch is `reasoning_effort`, while we used `chat_template_kwargs.enable_thinking`, which worked but isn't documented. Clarifying both would help.
 
-### Hackathon notes
-
-- **Track:** Best Apps and Agents.
-- This project is also entered in the Qloo LLM Hackathon. The Nemotron model routing and benchmark, live agent trace, Super VL photo intake, grounding scoreboard, and taste memory were built for the Nebius × NVIDIA Hackathon.
-
 ## Pages
 
 | URL | What it shows |
@@ -92,7 +89,7 @@ Only Token Factory is used. The API is hosted on Render and the page on Vercel (
 
 ## Run it locally
 
-Needs Node 24 and npm, plus a Qloo hackathon key and a Nebius Token Factory key.
+Needs Node 24 and npm, plus a Qloo API key and a Nebius Token Factory key.
 
 1. Put the keys in a `.env` at the repo root (or `server/.env`). See `server/.env.example` for the names:
 
@@ -154,6 +151,8 @@ Environment variables: `QLOO_API_KEY`, `NEBIUS_API_KEY`, `CLIENT_ORIGIN=<your Ve
 New Project → import this repo, then set **Root Directory** to `client`. Vercel detects Vite (build `npm run build`, output `dist`). Add the environment variable `VITE_API_BASE_URL=<your Render URL>` and deploy.
 
 Then go back to Render and make sure `CLIENT_ORIGIN` matches the Vercel URL exactly.
+
+The live deployment uses exactly this setup: page at `https://night-out-taste-planner.vercel.app`, API at `https://night-out-taste-planner.onrender.com` (`CLIENT_ORIGIN` set to the Vercel URL).
 
 ### 3. Check the rate limiter sees real client IPs
 

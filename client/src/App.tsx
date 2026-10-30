@@ -85,9 +85,23 @@ export function App() {
   /** Which profile the taste builder is editing, if open. */
   const [building, setBuilding] = useState<0 | 1 | null>(null);
   useEffect(() => {
-    fetchPresets()
-      .then(setPresets)
-      .catch(() => setPresets(null));
+    // The API may be waking up (free hosting sleeps) — keep trying instead of giving up after one failure.
+    let live = true;
+    let attempt = 0;
+    let timer: ReturnType<typeof setTimeout>;
+    const load = () =>
+      fetchPresets()
+        .then((p) => live && setPresets(p))
+        .catch(() => {
+          if (!live) return;
+          attempt += 1;
+          timer = setTimeout(load, Math.min(15000, 2000 * attempt));
+        });
+    load();
+    return () => {
+      live = false;
+      clearTimeout(timer);
+    };
   }, []);
   /** Who the next plan is for. */
   const activeProfiles: TasteProfile[] = [me ?? presets?.cozy, ...(duo ? [partner ?? presets?.partner] : [])].filter(
@@ -281,6 +295,7 @@ export function App() {
     <main className="page">
       <TasteHeader
         profiles={activeProfiles}
+        loading={!presets}
         custom={[!!me, !!partner]}
         duo={duo}
         locked={!!busy}

@@ -56,6 +56,8 @@ function ProfileChips({ profile }: { profile: TasteProfile }) {
 interface Props {
   /** Profiles the next plan is for; empty while presets load. */
   profiles: TasteProfile[];
+  /** The demo tastes are still loading (e.g. the API is waking up). */
+  loading?: boolean;
   /** Which of those profiles are someone's own (not a demo preset). */
   custom: boolean[];
   duo: boolean;
@@ -68,7 +70,9 @@ interface Props {
   overlap?: Overlap;
 }
 
-export function TasteHeader({ profiles, custom, duo, locked, onBuild, onUseDemo, onToggleDuo, words, overlap }: Props) {
+export function TasteHeader({ profiles, loading, custom, duo, locked, onBuild, onUseDemo, onToggleDuo, words, overlap }: Props) {
+  // Always offer "Use my taste", even before the demo taste has loaded.
+  const rows: (TasteProfile | null)[] = profiles.length ? profiles : [null];
   return (
     <header className="header">
       <h1>Cozy Night Planner</h1>
@@ -81,8 +85,23 @@ export function TasteHeader({ profiles, custom, duo, locked, onBuild, onUseDemo,
           Date night for two
         </button>
       </div>
-      {profiles.map((p, i) => {
+      {rows.map((p, i) => {
         const who = i as 0 | 1;
+        if (!p) {
+          return (
+            <div className="profile-row" key={i}>
+              <p className="profile-name">
+                <strong>Your taste</strong>
+              </p>
+              <p className="taste-words">{loading ? "Loading the demo taste — the server may take a moment to wake up…" : "Using the demo taste."}</p>
+              <p className="profile-actions">
+                <button type="button" className="link-button" onClick={() => onBuild(0)} disabled={locked}>
+                  Use my taste
+                </button>
+              </p>
+            </div>
+          );
+        }
         return (
           <div className="profile-row" key={i}>
             <p className="profile-name">
