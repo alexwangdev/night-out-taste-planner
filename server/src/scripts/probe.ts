@@ -1,38 +1,37 @@
 /**
- * Slice 1 risk probe: proves the Qloo hackathon host works for this project.
- *   1. Resolves the seed taste names to Qloo entity/tag IDs and saves them to src/data/seedIds.ts.
- *   2. Fetches movie, Toronto restaurant, and artist candidates from Insights using those IDs.
+ * Risk probe and preset resolver for the Qloo hackathon host.
+ *   1. Resolves every preset persona's names to Qloo entity/tag IDs and saves them to src/data/seedIds.ts.
+ *   2. Fetches movie, Toronto restaurant, and artist candidates for the cozy preset.
  * Run from server/:  npm run probe
- * Exits non-zero if any category comes back empty or no Toronto place has a price level.
+ * Exits non-zero if a name can't be resolved, a category comes back empty, or no Toronto place has a price level.
  */
 import { writeFileSync } from "node:fs";
+import { CITY, PRESET_SOURCES, type PresetSource, type TagSource } from "../data/profile.js";
 import { DEFAULT_QLOO_BASE_URL, QlooError, getInsights, searchEntities, searchTags } from "../services/qloo.js";
-import { seedProfile } from "../data/profile.js";
-import { QLOO_TYPES, type QlooEntityType, type QlooTag } from "../types.js";
+import { QLOO_TYPES, type Candidate, type Named, type QlooEntityType, type QlooTag, type TasteProfile } from "../types.js";
 
-type Named = { name: string; id: string };
 const norm = (s: string) => s.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, " ").trim();
 const problems: string[] = [];
 
 async function resolveEntity(name: string, type: QlooEntityType): Promise<Named | null> {
   const hits = await searchEntities(name, type, 5);
   const best = hits.find((h) => norm(h.name) === norm(name)) ?? hits[0];
-  console.log(`  ${name.padEnd(22)} → ${best ? `${best.name} [${best.id}]` : "NOT FOUND"}`);
+  console.log(`  ${name.padEnd(34)} → ${best ? `${best.name} [${best.id}]` : "NOT FOUND"}`);
   if (!best) problems.push(`no ${type} match for "${name}"`);
   return best ? { name, id: best.id } : null;
 }
 
-async function resolveTag(label: string, query: string, parent: QlooEntityType, hint: RegExp): Promise<Named | null> {
-  let tags: QlooTag[] = await searchTags(query, parent, 15);
-  if (!tags.length) tags = await searchTags(query, undefined, 15); // some hosts ignore parent filtering
-  const q = norm(query);
-  const score = (t: QlooTag) =>
-    (norm(t.name) === q ? 4 : norm(t.name).includes(q) ? 2 : 0) + (hint.test(t.id) ? 3 : 0);
+async function resolveTag(src: TagSource, parent: QlooEntityType, hint: RegExp): Promise<Named | null> {
+  let tags: QlooTag[] = await searchTags(src.tagQuery, parent, 15);
+  if (!tags.length) tags = await searchTags(src.tagQuery, undefined, 15); // some hosts ignore parent filtering
+  const q = norm(src.tagQuery);
+  const prefer = src.prefer ?? hint;
+  const score = (t: QlooTag) => (norm(t.name) === q ? 4 : norm(t.name).includes(q) ? 2 : 0) + (prefer.test(t.id) ? 3 : 0);
   const best = [...tags].sort((a, b) => score(b) - score(a))[0];
   const alts = tags.slice(0, 5).map((t) => t.id).join(", ");
-  console.log(`  ${label.padEnd(22)} → ${best ? best.id : "NOT FOUND"}${alts ? `\n      alternatives: ${alts}` : ""}`);
-  if (!best) problems.push(`no tag match for "${label}" (query "${query}")`);
-  return best ? { name: label, id: best.id } : null;
+  console.log(`  ${src.label.padEnd(34)} → ${best ? best.id : "NOT FOUND"}${alts ? `\n      alternatives: ${alts}` : ""}`);
+  if (!best) problems.push(`no tag match for "${src.label}" (query "${src.tagQuery}")`);
+  return best ? { name: src.label, id: best.id } : null;
 }
 
 const keep = <T>(xs: (T | null)[]) => xs.filter((x): x is T => x !== null);
@@ -43,45 +42,42 @@ async function inSeries<T, R>(xs: readonly T[], fn: (x: T) => Promise<R>): Promi
   return out;
 }
 
+async function resolvePreset(src: PresetSource): Promise<TasteProfile> {
+  console.log(`\nResolving preset "${src.name}"…`);
+  return {
+    name: src.name,
+    likedMovies: keep(await inSeries(src.likedMovies, (n) => resolveEntity(n, QLOO_TYPES.movie))),
+    likedArtists: keep(await inSeries(src.likedArtists, (n) => resolveEntity(n, QLOO_TYPES.artist))),
+    likedFoods: keep(await inSeries(src.likedFoods, (f) => resolveTag(f, QLOO_TYPES.place, /^urn:tag:genre:place:restaurant:/))),
+    dislikedMovieTags: keep(await inSeries(src.dislikedMovieTags, (t) => resolveTag(t, QLOO_TYPES.movie, /^urn:tag:genre:media:/))),
+    dislikedPlaceTags: keep(await inSeries(src.dislikedPlaceTags, (t) => resolveTag(t, QLOO_TYPES.place, /:place:/))),
+  };
+}
+
 async function main() {
   const host = process.env.QLOO_BASE_URL?.trim() || DEFAULT_QLOO_BASE_URL;
-  console.log(`Qloo host: ${host}\n\nResolving seed profile…`);
+  console.log(`Qloo host: ${host}`);
 
-  const likedMovies = keep(await inSeries(seedProfile.likedMovies, (n) => resolveEntity(n, QLOO_TYPES.movie)));
-  const likedArtists = keep(await inSeries(seedProfile.likedArtists, (n) => resolveEntity(n, QLOO_TYPES.artist)));
-  const likedFoodTags = keep(
-    await inSeries(seedProfile.likedFoods, (f) => resolveTag(f.label, f.tagQuery, QLOO_TYPES.place, /^urn:tag:genre:place:restaurant:/)),
-  );
-  const dislikedMovieTags = keep(
-    await inSeries(seedProfile.dislikedMovieTags, (t) => resolveTag(t.label, t.tagQuery, QLOO_TYPES.movie, /^urn:tag:genre:media:/)),
-  );
-  const dislikedPlaceTags = keep(
-    await inSeries(seedProfile.dislikedPlaceTags, (t) => resolveTag(t.label, t.tagQuery, QLOO_TYPES.place, t.prefer)),
-  );
+  const presets: Record<string, TasteProfile> = {};
+  for (const [key, src] of Object.entries(PRESET_SOURCES)) presets[key] = await resolvePreset(src as PresetSource);
 
-  const ids = { resolved: true, likedMovies, likedArtists, likedFoodTags, dislikedMovieTags, dislikedPlaceTags };
   const out = new URL("../data/seedIds.ts", import.meta.url);
   writeFileSync(
     out,
-    "// GENERATED by `npm run probe` — Qloo IDs resolved from the seed names in profile.ts.\n" +
+    "// GENERATED by `npm run probe` — Qloo IDs resolved from the preset names in profile.ts.\n" +
       "// Safe to commit: these are public Qloo entity/tag IDs, not secrets.\n" +
-      `export const seedIds = ${JSON.stringify(ids, null, 2)};\n`,
+      `export const seedIds = ${JSON.stringify({ resolved: true, presets }, null, 2)};\n`,
   );
   console.log(`\nSaved resolved IDs to src/data/seedIds.ts`);
 
-  const allLiked = [...likedMovies, ...likedArtists].map((x) => x.id);
-  const foodTags = likedFoodTags.map((t) => t.id);
-
-  const report = async (label: string, fn: () => Promise<import("../types.js").Candidate[]>) => {
+  const cozy = presets.cozy;
+  const liked = [...cozy.likedMovies, ...cozy.likedArtists].map((x) => x.id);
+  const foodTags = cozy.likedFoods.map((t) => t.id);
+  const report = async (label: string, fn: () => Promise<Candidate[]>) => {
     try {
       const c = await fn();
       console.log(`\n${label}: ${c.length} candidates`);
-      for (const x of c.slice(0, 8)) {
-        const extra = [x.year, x.priceLevel ? `price_level ${x.priceLevel}` : x === c[0] && label.startsWith("Toronto") ? "no price_level" : "", x.address]
-          .filter(Boolean)
-          .join(" · ");
-        console.log(`  - ${x.name}${extra ? `  (${extra})` : ""}`);
-      }
+      for (const x of c.slice(0, 6)) console.log(`  - ${x.name}${x.priceLevel ? `  (price_level ${x.priceLevel})` : ""}`);
       if (!c.length) problems.push(`${label}: no candidates`);
       return c;
     } catch (err) {
@@ -90,34 +86,11 @@ async function main() {
       return [];
     }
   };
-
-  await report("Movies", () =>
-    getInsights({
-      type: QLOO_TYPES.movie,
-      likedEntityIds: allLiked,
-      excludeEntityIds: likedMovies.map((m) => m.id),
-      excludeTagIds: dislikedMovieTags.map((t) => t.id),
-    }),
-  );
+  await report("Movies", () => getInsights({ type: QLOO_TYPES.movie, likedEntityIds: liked, excludeTagIds: cozy.dislikedMovieTags.map((t) => t.id) }));
   const places = await report("Toronto restaurants", () =>
-    getInsights({
-      type: QLOO_TYPES.place,
-      likedEntityIds: allLiked,
-      likedTagIds: foodTags,
-      requireAnyTagIds: foodTags,
-      excludeTagIds: dislikedPlaceTags.map((t) => t.id),
-      locationQuery: seedProfile.city,
-      take: 25,
-    }),
+    getInsights({ type: QLOO_TYPES.place, likedEntityIds: liked, likedTagIds: foodTags, requireAnyTagIds: foodTags, locationQuery: CITY, take: 25 }),
   );
-  await report("Artists", () =>
-    getInsights({
-      type: QLOO_TYPES.artist,
-      likedEntityIds: allLiked,
-      excludeEntityIds: likedArtists.map((a) => a.id),
-    }),
-  );
-
+  await report("Artists", () => getInsights({ type: QLOO_TYPES.artist, likedEntityIds: liked }));
   const priced = places.filter((p) => p.priceLevel !== undefined);
   console.log(`\nToronto places with a price_level: ${priced.length} of ${places.length}`);
   if (places.length && !priced.length) problems.push("no Toronto place has a price_level");

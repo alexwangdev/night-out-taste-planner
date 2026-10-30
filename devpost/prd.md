@@ -16,15 +16,42 @@ Source: `scope.md > The Unique Kernel`, `scope.md > Who It's For`.
 4. They can thumbs-up or thumbs-down any pick. A thumbs-up is visibly marked and records a like; a thumbs-down records a dislike and marks that card for replacement. **Re-plan** appears only once at least one card is disliked. (`scope.md > The Unique Kernel`)
 5. Selecting **Re-plan** replaces exactly the disliked cards. Other cards, including liked cards, stay exactly the same. Replacement cards start with neutral feedback. The person can repeat this loop. (`scope.md > The Core Loop`)
 
+## Added During Build (slices 6–9)
+
+Added at the learner's request after reviewing the hackathon judging criteria; the core journey above is unchanged.
+
+- **Qloo details on every card:** Qloo's image, a "% taste match" from Qloo's affinity score, and action links built only from Qloo's records — Netflix/IMDb for the movie, Spotify per artist, Map/Call/Website plus rating and neighbourhood for dinner.
+- **Mood agent:** the prompt's mood ("rainy Sunday date night, romantic") is turned into Qloo taste-graph tags by a Nemotron tool-calling step that searches Qloo's tags itself; those tags steer each category's candidates. Results show "How I read your night" with the tags used, and each card notes which of them it fits. Re-plans keep the same mood. If the agent fails, the plan still comes from taste alone.
+- **Your own taste:** "Use my taste" opens a builder with Qloo-backed autocomplete for up to three favourite movies, artists, and foods, plus a name. The plan then comes from that profile; it is saved in the browser and the cozy demo persona stays one tap away.
+- **Date night for two:** a "Just me / Date night for two" switch adds a second person (a demo partner, or their own taste). Each category is chosen from candidates Qloo scores for both people, ranked by the lower of the two scores; both people's dislikes are excluded; cards show "For both · You 92% · Partner 88%"; reasons speak to "you" and "your partner". No names are asked for. The dinner budget stays per person.
+
+## Added During Build (slices 10–14, Nebius × NVIDIA)
+
+- **Right model for each job:** each step runs on the NVIDIA Nemotron model that measured best for it on Token Factory (see `devpost/model-benchmark.md`); if the pick model fails, a fallback model answers so a plan still arrives.
+- **Watch the agent work:** while planning, the results area lists each step live — reading the mood (and which Qloo tags it searched), asking Qloo per category, scoring for both people, applying the budget, choosing (with the model's name), and verifying every pick. Afterwards it folds under the plan as "How this plan was made".
+- **Snap your taste:** in the taste builder, a photo (shelf, record sleeves, a watch-history or playlist screenshot, a meal) is read by Nemotron 3.5 Super VL and matched to Qloo; matches join the picks. The photo isn't stored.
+- **Why grounding matters page (`#/grounding`, linked in the footer):** the same requests answered by Nemotron alone vs. this app, every model-only suggestion checked in Qloo — repeated favourites, restaurants not in Toronto or marked closed, budget fit by Qloo price data, and average Qloo taste match — with the raw rows and method.
+- **Charts on the saved page:** "Taste match over your plans" plots each plan's Qloo match for movie, dinner, and playlist (date nights: the lower of the two people's scores), kept for the last 30 plans in the browser, with hover details, a table view, and Clear history. "How grounding compares" shows the scoreboard's four measures as paired bars (Nemotron alone vs. this app), labelled with which direction is better, linking to the full page.
+- **Taste memory:** after at least three thumbs, Nemotron writes up to three short notes about what this person leans toward and avoids, each citing at least two of their thumbs. Notes show under the header and on the saved page (forget one or all), stay in the browser, and are sent with plans.
+
+## Added During Build (slices 15–17)
+
+- **Your taste in a few words:** under each taste (and live in the taste builder, including right after Snap your taste), a short description from Qloo's taste analysis.
+- **Where your tastes meet (date night):** a panel under the two tastes with the themes Qloo finds in both (each showing a favourite from each person behind it) and where each person leans differently. Reasons can draw on it.
+- **Where in Toronto:** after a plan, a map of Toronto shaded by how strongly your taste — or both of yours — concentrates in each area, with the hotspot named and the dinner pick pinned with its score. Dinner picks lean toward the hotspot when choices are otherwise close.
+- *Not built:* a "trending this month" nudge — Qloo's trending data was empty on the hackathon key.
+
 ## Screens and Layout
 
-One responsive screen, with no navigation, login, or sidebar:
+One responsive planner screen, with no login or sidebar, plus a small **Saved in this browser** page reached from the footer:
 
-- **Header:** “Cozy Night Planner” title, a subtitle (“One prompt plans your whole evening, from your taste.”), and compact chips showing representative likes (When Harry Met Sally, Norah Jones, Italian) and dislikes (horror, very spicy food).
+- **Header:** “Cozy Night Planner” title, a subtitle (“One prompt plans your whole evening, from your taste.”), the **Just me / Date night for two** switch, and one row per person ("Your taste" · "Your partner's taste") with compact chips of representative likes and dislikes and **Use my taste / Edit my taste** links that open the taste builder.
 - **Prompt area:** a large prompt box with “Plan my Friday night, something cozy, under $60 CAD” as its example placeholder and a **Plan my evening** button. Empty input disables the button and shows a hint beneath it. While planning, show “Finding your evening…” and no other progress text.
 - **Before the first plan:** show three clickable example prompts in the results area, including the Friday-night example.
 - **Results:** three cards ordered Movie, Dinner, Playlist. Cards appear in a row on wider screens and stack vertically on narrow screens. Each contains the pick name, italic one-line taste reason, and thumbs-up/down controls. Dinner also has an estimated CAD cost and budget-status badge. Show **Re-plan** only after at least one thumbs-down.
 - **Retry and fallback content:** keep the prompt above the results. Render whole-request and per-card failures in the results area as specified under `States and Boundaries`.
+- **Footer (bottom of the planner):** a quiet line saying thumbs and the last plan are saved in this browser only, with **See what's saved** and **Reset to starting profile**.
+- **Saved in this browser page (`#/saved`):** lists saved thumbs-up and thumbs-down items by category (each removable), the last prompt and plan with its thumbs, any raised budget, the storage key and size with the raw stored JSON behind a toggle, and **Reset to starting profile**. A **Back to planner** link returns to the plan.
 
 ## Look and Feel
 
@@ -59,15 +86,17 @@ Warm lamplight rather than a tech dashboard: deep warm brown-charcoal background
 - **Single category failure:** keep the other two cards visible. In the failed card, show the same message with a card-level **Try again** button.
 - **Retry with an existing plan:** keep the current plan visible during the retry. A failed retry must not erase it.
 - **Feedback and re-plan:** selected feedback is visible; a like protects its card; disliked cards alone are replaced; new cards start neutral.
+- **Returning in the same browser:** thumbs history, the last prompt, the current plan with its thumbs, and any raised budget are restored from that browser's local cache. Each computer/browser keeps its own; nothing is shared or stored on the server. The footer says so, links to the saved-data page, and offers **Reset to starting profile** to return to the seeded persona (for example before a demo). Removing a saved like or dislike on the saved-data page returns a card showing that thumb to neutral.
 
 ## Product Decisions
 
-- One screen, without navigation, login, or sidebar, keeps the demo focused on the core loop.
+- One planner screen, without login or sidebar, keeps the demo focused on the core loop; the only other view is the saved-data page, so people can see exactly what this browser keeps.
 - A preloaded “cozy night” taste profile makes grounding visible without requiring signup or profile setup.
 - The dinner budget is per person in CAD, before tip; a missing budget defaults to $60 CAD and is disclosed. Every restaurant cost is a labeled estimate mapped from Qloo's 1–4 price level: $15, $30, $50, and $90 CAD respectively.
 - Thumbs-up protects a result, while thumbs-down marks it for replacement. Re-planning only changed disliked picks keeps the evening coherent.
 - A closest over-budget match is shown transparently with a one-tap budget increase to its mapped estimate rather than hidden or presented as within budget. Unpriced restaurant candidates are ineligible; if no priced candidates remain, use the dinner retry state.
 - Recommendation failures preserve the prompt and any existing good cards, so retrying does not lose work.
+- Taste feedback and the last plan persist per browser in a local cache rather than an account or server store, so each person's computer keeps its own evening history without signup; a visible reset keeps demos predictable.
 - Visual direction is warm, calm, and spacious, with explicit color, type, and emphasis choices.
 
 ## What We're Building
@@ -81,22 +110,22 @@ Warm lamplight rather than a tech dashboard: deep warm brown-charcoal background
 
 ## Deferred From the POC
 
-- Accounts and profile setup: the demo uses one preloaded persona.
+- Accounts: profiles live in the browser; no signup.
 - Payments or booking: only an estimated meal cost is needed.
-- Multiple cities and group planning: the proof demonstrates one person's plan.
-- Persistent personal profiles across sessions: outside the one-persona demo.
+- Multiple cities and groups larger than two.
+- Persistent personal profiles across devices or accounts: outside the one-persona demo (same-browser persistence is in scope via the local cache).
 - Server-side taste-profile persistence: deferred until after Basics for the Nebius project version, which needs memory across sessions.
 
 ## Possible Later Enhancements
 
-Allow people to create and save their own taste profiles, then expand to multiple cities or group plans. Add booking or payment flows only if the product grows beyond recommendations.
+Sync taste profiles across devices, then expand to multiple cities or larger groups. Add booking or payment flows only if the product grows beyond recommendations.
 
 ## Non-Goals
 
 - Signup, authentication, or account management, to keep the demo immediately usable.
 - Completing a purchase or reservation; the dinner price is an estimate.
 - Streaming or playing the movie/music; these are recommendations.
-- Group coordination, multi-city selection, or user-authored profiles in this proof of concept.
+- Coordinating groups larger than two, or multi-city selection, in this proof of concept.
 - Hiding a failed category or silently violating the dinner budget.
 
 ## Open Questions

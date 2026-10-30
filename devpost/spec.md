@@ -9,7 +9,7 @@ status: approved
 
 The page runs in a browser and holds the current prompt, taste feedback, and evening plan only while the page stays open. A small TypeScript API on Render talks to Qloo and Nebius so their secret keys never go to the browser. Qloo supplies real movie, Toronto restaurant, and music-artist candidates. The API applies the CAD dinner estimate before it asks Nemotron to choose among those candidates and explain the choices. The API checks every returned Qloo ID against the candidate list before any pick can appear.
 
-The React/Vite page is hosted on Vercel. The Render service can sleep after 15 minutes without a request and may take about a minute to wake; warm it before recording and judging. There is no database in this proof of concept. Refreshing the page restores the seeded taste profile; server-side persistence is deferred until after Basics for the Nebius project version.
+The React/Vite page is hosted on Vercel. The Render service can sleep after 15 minutes without a request and may take about a minute to wake; warm it before recording and judging. There is no database in this proof of concept. The browser keeps its own copy of the feedback and last plan in `localStorage`, so each computer/browser has its own history; **Reset to starting profile** clears it. Server-side persistence is deferred until after Basics for the Nebius project version.
 
 ## The Core Journey Through the System
 
@@ -30,10 +30,33 @@ Express API (Render; holds secret keys)
     └── Nebius Token Factory / Nemotron ── choose allowed IDs + explain
     │ validated plan / category retry state
     ▼
-Browser (renders cards; resets to seed profile on refresh)
+Browser (renders cards; saves feedback + last plan in its own localStorage)
 ```
 
 PRD refs: `prd.md > The Core Journey`, `prd.md > Features and Behavior`, `prd.md > States and Boundaries`.
+
+## Added During Build (slices 6–9)
+
+- **Qloo details (`services/qloo.ts`):** candidates keep `query.affinity`, the `images.qloo.com` image, rating/neighbourhood, and links built only from Qloo external IDs (Netflix, IMDb `tt…`, most-followed Spotify ID, Google Place ID) and Qloo's phone/website.
+- **Mood agent (`services/moodAgent.ts`):** Nemotron (thinking off) calls a `search_qloo_tags` tool; the server runs Qloo `GET /v2/tags` with `filter.parents.types` per category (cached in memory, multi-word queries fall back to single words), then Nemotron returns chosen tag IDs under a strict JSON schema. Only IDs Qloo returned are kept; at most 2 per category; movie `genre:media:*` tags are dropped (slow, skewed). Tags go to Insights as `signal.interests.tags`; mood-steered calls time out after 7 s and retry without them. The reading is returned as `mood` and echoed back on re-plan.
+- **Profiles (`data/profile.ts`, `routes/plan.ts`):** `PRESET_SOURCES` (cozy demo taste, demo partner) are resolved by `npm run probe` into `seedIds.presets` and served by `GET /api/presets`. Plan/re-plan accept `profiles` (1–2), validated server-side (Qloo entity IDs, `urn:tag:` IDs, ≤5 per list, at least one like). `GET /api/search?type=movie|artist|food&q=` proxies Qloo search (food = restaurant-genre tags) behind its own 60/min per-IP limit.
+- **Two-person blend (`services/planner.ts`):** per category, each person's Insights candidates are gathered (everyone's dislikes excluded; places must fit either person's cuisines), then Qloo scores every candidate for each person via `filter.results.entities`; candidates are ranked by the lower score and marked "for both" when both are ≥ 0.8. The model sees per-person scores and is told to name both people. Two-person plans take ~15 s.
+- **Client:** `TasteHeader` (mode switch, profile rows), `ProfileBuilder` (autocomplete pickers), `MoodChips`, per-person `Match` badges; profiles and mode are saved in the browser cache.
+
+## Added During Build (slices 10–14)
+
+- **Model routing (`services/nemotron.ts > models()`):** mood agent → `Nemotron-3_5-Lightning`; picks → `Nemotron-3-Ultra-550b-a55b` (reasoning off) with automatic fallback to Lightning; photos → `Nemotron-3.5-Super-VL` (reasoning on); taste memory → Ultra (reasoning on). Each overridable via `NEMOTRON_MOOD_MODEL`, `NEMOTRON_SELECT_MODEL`, `NEMOTRON_FALLBACK_MODEL`, `NEMOTRON_VISION_MODEL`, `NEMOTRON_MEMORY_MODEL`. Measurements and reasons: `devpost/model-benchmark.md`; re-run with `npm run bench`. Responses report `models` used.
+- **Streaming trace:** planner steps go through an `onStep` callback; `/api/plan` and `/api/replan` stream them as NDJSON (`{"type":"step"}` lines, then a final `{"type":"result"|"error","status"}`) when the request sends `Accept: application/x-ndjson`, otherwise plain JSON as before. Mood-steered Qloo calls are hedged with a taste-only request after 2.5 s; `genre:music:*` and `genre:media:*` mood tags are dropped (measured slow, no benefit).
+- **`POST /api/snap`:** JSON `{ image: data URL }` (own 6 MB body limit, ≤ 4 MB JPEG/PNG/WebP, 6/min per IP); Super VL → `{movies, artists, foods}` → Qloo search/tag matches; nothing stored. The browser downsizes to ≤ 1280 px JPEG first.
+- **`POST /api/memory`:** `{liked, disliked}` (≥ 3 total, 10/min per IP) → ≤ 3 notes, each citing ≥ 2 of the given items (others dropped). Plans accept `memory` (≤ 3 notes) and add them to the pick prompt.
+- **Saved-page charts:** each plan/re-plan appends `{at, prompt, duo, kind, movie|dinner|playlist: {name, match}}` to `history` in the browser cache (last 30). `TasteHistoryChart` (SVG line chart) and `GroundingBars` (SVG paired bars, reading `/grounding.json`) use a categorical palette validated against the card surface (`#3987e5`, `#d95926`, `#199e70`; all-pairs CVD ΔE ≥ 9.4, contrast ≥ 3:1), hover tooltips, keyboard-focusable hit targets, and a table view; on phones they render at native size and scroll sideways.
+- **Grounding eval (`npm run eval`, `scripts/eval-grounding.ts`):** writes `client/public/grounding.json`, rendered at `#/grounding`.
+
+## Added During Build (slices 15–17)
+
+- **`services/tasteInsights.ts`:** `describeTaste` (Qloo `/v2/insights` with `filter.type=urn:tag`, `filter.tag.types=urn:tag:style:qloo` take 15 by popularity, plus `urn:tag:genre:music` take 1) and `compareTastes` (Qloo `/v2/analysis/compare` with `a.`/`b.signal.interests.entities`; readable tag families only; side-only leanings from `results.a`/`results.b`). Nemotron Lightning chooses the shown words/themes from Qloo's candidates via an enum-constrained schema (falls back to Qloo order). Cached 30 min per profile. Exposed by `POST /api/taste` (30/min per IP) and used by the planner on date night.
+- **`services/tasteMap.ts`:** Qloo `/v2/insights` with `filter.type=urn:heatmap`, `filter.location.query=Toronto`, entity + food-tag signals; ~6,000 cells binned to 0.01° × 0.015° (~1 km), mean affinity per bin, two people → lower score, normalised to the best bin; hotspot named from the nearest Qloo dinner candidate's `neighborhood` within 1.5 km (else unnamed). Dinner candidates get `areaScore` (shown to the model and on the card); the response carries `area { name, bins, best, pick }` (~22 KB). Candidates now carry Qloo `location.lat/lon`.
+- **Client:** `TasteHeader` shows words and `OverlapPanel`; `ProfileBuilder` previews words for the draft; `TasteMap` draws bins on an equal-distance projection with a one-hue sequential ramp, cream dinner pin, hover readout. Re-plans that don't replace dinner keep the previous `area`/`overlap`.
 
 ## Stack
 
@@ -42,7 +65,7 @@ PRD refs: `prd.md > The Core Journey`, `prd.md > Features and Behavior`, `prd.md
 - **Node.js 24 LTS with Express 5** for a small JSON API on Render. The workspace currently has Node 24.11.1; use the Node 24 major on both hosts. Express keeps the server routes and secret-bearing service calls simple. [Node release status](https://nodejs.org/en/about/previous-releases), [Express 5 docs](https://expressjs.com/en/5x/api.html).
 - **Built-in `fetch`** for Qloo and Nebius requests; no additional AI SDK is needed for their HTTP APIs.
 - **`express-rate-limit` 8.x** for shared per-client-IP throttling on plan generation. Its built-in memory store fits one Render instance; counts reset if that process restarts. [Package documentation](https://express-rate-limit.github.io/).
-- **No database or login.** Browser memory is the only store during a page session.
+- **No database or login.** Each browser's `localStorage` is the only store (key `cozy-night-planner:v1`); nothing is persisted server-side.
 - **Deployment:** Vercel Hobby for the Vite frontend and Render Free Web Service for the Express API, as chosen by the learner. Vercel’s [Vite guide](https://vercel.com/docs/frameworks/frontend/vite) and Render’s [free service limits](https://render.com/docs/free).
 
 ## Where It Runs and How Someone Tries It
@@ -81,7 +104,7 @@ Implement `prd.md > Look and Feel`: deep warm brown-charcoal background; slightl
 
 ### React App and Taste Header
 
-Render the single page, title/subtitle, and the fixed visible subset of taste-profile chips. Own prompt, current cards, selected feedback, busy state, and card errors in React component state. No value is persisted to localStorage or a server session. Implements `prd.md > Screens and Layout`, `prd.md > States and Boundaries`.
+Render the single page, title/subtitle, and the fixed visible subset of taste-profile chips. Own prompt, current cards, selected feedback, busy state, and card errors in React component state. Prompt, plan, thumbs, feedback, and any raised budget are saved to this browser's `localStorage` (`client/src/storage.ts`) and restored on load; blocked storage or malformed data falls back to the seeded profile. **Reset to starting profile** clears it. Nothing is kept in a server session. The URL hash switches between the planner (`#/`) and the **Saved in this browser** page (`#/saved`, `components/SavedPage.tsx`) — no router package and no hosting rewrites. The planner's footer holds the saved-data note and links. Implements `prd.md > Screens and Layout`, `prd.md > States and Boundaries`.
 
 ### Prompt Form and Example Prompts
 
@@ -129,9 +152,9 @@ For re-plan, Qloo and Nemotron receive only the disliked categories. The backend
 
 No server-side session store or database.
 
-- **Seed profile (server code):** liked names and resolved Qloo IDs by category, seeded dislikes/tag exclusions, and a representative subset for UI chips. Read-only baseline; restored by a page refresh.
-- **Feedback profile (browser memory):** liked and disliked Qloo entity IDs. Thumbs-up adds to likes; thumbs-down adds to exclusions. Included in subsequent plan/re-plan API requests. Cleared on refresh.
-- **Prompt and plan (browser memory):** current text; selected movie, place, and artist ID list/title; Qloo names and details; mapped CAD dinner estimate; reason text; feedback state; and category error/loading state. Re-plan sends current unchanged card data and replacement categories to the backend. Cleared on refresh.
+- **Seed profile (server code):** liked names and resolved Qloo IDs by category, seeded dislikes/tag exclusions, and a representative subset for UI chips. Read-only baseline; restored by **Reset to starting profile**.
+- **Feedback profile (browser `localStorage`):** liked and disliked Qloo entity IDs with names and categories, capped at 50 each. Thumbs-up adds to likes; thumbs-down adds to exclusions. Included in subsequent plan/re-plan API requests. Kept per browser across refreshes; cleared by reset.
+- **Prompt and plan (browser `localStorage`, restored on load):** current text; selected movie, place, and artist ID list/title; Qloo names and details; mapped CAD dinner estimate; reason text; feedback state; and category error/loading state. Re-plan sends current unchanged card data and replacement categories to the backend. Loading and error state are not saved; everything else is cleared by reset.
 - **Request data (server memory only):** process each API call and return a response; do not store user profile or plan between calls. The client supplies the in-page snapshot needed to preserve unchanged results.
 - **Secrets (Render environment):** `QLOO_API_KEY`, `NEBIUS_API_KEY`; never expose them through Vite variables or commit them. `.env.example` contains names only.
 
@@ -154,7 +177,11 @@ night-out-taste-planner/
 │       │   ├── TasteHeader.tsx
 │       │   ├── PromptForm.tsx
 │       │   ├── ExamplePrompts.tsx
-│       │   └── PlanCard.tsx
+│       │   ├── PlanCard.tsx
+│       │   ├── ProfileBuilder.tsx   # Qloo-backed taste builder
+│       │   ├── MoodChips.tsx        # "How I read your night"
+│       │   └── SavedPage.tsx        # What this browser has stored (#/saved)
+│       ├── storage.ts               # Per-browser localStorage cache
 │       └── styles.css               # Responsive cozy-night design
 ├── server/
 │   ├── package.json                 # Express and TypeScript scripts/dependencies
@@ -169,6 +196,7 @@ night-out-taste-planner/
 │       ├── services/qloo.ts         # Qloo Insights/lookup calls
 │       ├── services/budget.ts       # Prompt budget parse and CAD price mapping
 │       ├── services/nemotron.ts     # Token Factory chat-completion call/validation
+│       ├── services/moodAgent.ts    # Tool-calling mood → Qloo tags
 │       └── services/planner.ts      # Orchestrates candidate fetch, filter, select, merge
 ├── devpost/
 │   ├── learner-profile.md           # Ignored by git
@@ -212,7 +240,7 @@ night-out-taste-planner/
 
 ## What Was Simplified and Why
 
-- Browser memory instead of a database or server session — makes the demo reset predictably for each judge and avoids another service; server-side persistence is deferred, not cut, for the later Nebius project version.
+- Per-browser `localStorage` instead of a database or server session — each computer keeps its own history without accounts or another service, and a visible reset keeps judging predictable; server-side, cross-device persistence is deferred, not cut, for the later Nebius project version.
 - Fixed Toronto instead of location selection — keeps the restaurant request and demo consistent.
 - A transparent four-level CAD mapping instead of actual menu prices — Qloo provides restaurant price levels, not per-person menu totals; every mapped amount is labeled an estimate.
 - One public Render API instead of exposing external calls in the browser — keeps both API keys private, at the cost of a sleeping free service that must be warmed before demos.
@@ -225,7 +253,7 @@ night-out-taste-planner/
 - **Learner decision:** Qloo candidates determine which entities may appear; Nemotron 3.5 Lightning interprets mood, selects among candidates, and writes explanations. Server-side allowlist validation is mandatory; retry invalid IDs once and reject remaining invalid output.
 - **Learner decision:** Toronto is fixed for place recommendations; budgets and estimates are CAD. Restaurant price levels map to $15/$30/$50/$90 CAD and unknown price levels are ineligible. A dynamic raise-budget action uses the closest priced candidate's mapped cost.
 - **Learner decision:** playlist card shows one title and 3–5 Qloo artist candidates, or fewer if fewer were returned, plus one reason for the set.
-- **Learner decision:** current plan and feedback exist in browser memory for the open page only and reset to the seeded profile on refresh. Server-side persistence is deferred for the later Nebius version that needs cross-session memory.
+- **Learner decision (revised during build):** current plan and feedback are cached in each browser's `localStorage`, so every computer keeps its own; **Reset to starting profile** restores the seeded persona. Server-side, cross-device persistence is still deferred for the later Nebius version.
 - **Implementation recommendation:** limit public plan/re-plan requests to 10 per client IP per minute with `express-rate-limit`; exclude `/health`. The in-memory counter is best-effort for the single Render instance and resets when the service restarts or sleeps.
 - **Clarified uncertainty:** Qloo's restaurant result does not provide an exact per-person menu price. The learner accepted a visible approximation based on Qloo's 1–4 price level and supplied the CAD mapping; unknown levels are excluded, and no priced result uses the Dinner retry state.
 - **Build-time verification:** confirm the Qloo key's API host/search route, resolve the seed names/tags, and verify live Toronto result shape includes usable `price_level`; check the key's Qloo/Nebius rate limits. No API keys need to be shared in chat or committed.

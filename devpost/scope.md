@@ -8,10 +8,10 @@ status: approved
 A personal assistant that turns a short prompt into one taste-matched evening plan: a movie, dinner spot, and playlist.
 
 ## The Unique Kernel
-The movie, restaurant, and playlist work together as one coherent evening, with a reason for each pick tied to what the person has liked before. If they dislike one pick and re-plan, that pick changes while the rest of the evening stays intact.
+The movie, restaurant, and playlist work together as one coherent evening, with a reason for each pick tied to what the person has liked before. If they dislike one pick and re-plan, that pick changes while the rest of the evening stays intact. *(Extended during build at the learner's request:)* the same evening can be planned for two people with different tastes, using only picks Qloo rates highly for both.
 
 ## Who It's For
-A person planning a night out who wants a personal, cohesive recommendation instead of searching separately for a movie, meal, and music. The demo uses one preloaded “cozy night” taste profile.
+A person planning a night out who wants a personal, cohesive recommendation instead of searching separately for a movie, meal, and music — and couples whose tastes differ, who otherwise negotiate every part of a date night. The demo starts from a preloaded cozy-night taste and a contrasting demo partner; anyone can swap in their own taste in a few picks. People are "you" and "your partner" — no names.
 
 ## The Core Loop
 Enter a prompt such as “Plan my Friday night, something cozy, under $60 CAD.” See one movie, one restaurant, and one playlist with a short taste-based reason for each. Give a pick a thumbs down and re-plan; the disliked item is replaced and the rest of the plan remains coherent.
@@ -32,9 +32,9 @@ One preloaded “cozy night” persona and one end-to-end evening-planning flow:
 - User accounts
 - Payments
 - Multiple cities
-- Group planning for more than one person
+- Group planning for more than two people
 
 ## Explicitly Cut
 - Signup and account management: unnecessary for demonstrating the flow with one preloaded persona.
 - Payment handling: only a restaurant estimate is needed to apply the dinner budget.
-- Multi-city and group planning: add data and coordination beyond the single-person proof of concept.
+- Multi-city planning and groups larger than two: add data and coordination beyond the proof of concept. *(Two-person date night was moved into scope during build.)*

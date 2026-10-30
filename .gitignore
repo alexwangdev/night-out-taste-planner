@@ -1,10 +1,31 @@
+# Private learner context and local agent tooling
 /devpost/learner-profile.md
 /.agents/
 /.claude/
 /agent/
 /skills-lock.json
+
+# Secrets: every .env file at any depth; the .env.example templates (names only) are kept
 .env
 .env.*
 !.env.example
+
+# Dependencies and build output
 node_modules/
 dist/
+*.tsbuildinfo
+# Vite writes temporary bundled configs next to vite.config.ts
+vite.config.*.timestamp-*
+
+# Logs
+*.log
+npm-debug.log*
+
+# Hosting CLIs (local project links, may hold tokens)
+.vercel/
+.render/
+
+# OS and editor clutter
+.DS_Store
+Thumbs.db
+desktop.ini

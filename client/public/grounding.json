@@ -1,0 +1,715 @@
+{
+  "generatedAt": "2026-10-30T03:23:32.640Z",
+  "model": "Nemotron 3 Ultra",
+  "runsPerScenario": 2,
+  "method": "Model alone: the app's pick model is asked for one movie, three Toronto restaurants with an estimated cost, and three artists for the same request and taste. Each suggestion is looked up with Qloo search (places within 25 miles of downtown Toronto, matched by name). Taste match is Qloo's affinity of the matched entity to the person's favourites (two people: the lower of the two). Grounded: Cozy Night Planner's own plan for the same request; all picks come from Qloo, so they are verified by construction.",
+  "summary": {
+    "modelAlone": {
+      "suggestions": 56,
+      "verifiedInQloo": 53,
+      "moviesAndArtists": 32,
+      "echoes": 24,
+      "restaurants": 24,
+      "restaurantsFoundInToronto": 21,
+      "restaurantsMarkedClosed": 4,
+      "restaurantsWithinBudgetByQloo": 16,
+      "restaurantsWithQlooPrice": 20,
+      "avgTasteMatch": 0.8464447713355518
+    },
+    "grounded": {
+      "suggestions": 25,
+      "verifiedInQloo": 25,
+      "echoes": 0,
+      "dinners": 4,
+      "dinnersWithinBudget": 4,
+      "avgTasteMatch": 0.8829458988258578
+    }
+  },
+  "scenarios": [
+    {
+      "title": "Cozy Friday (cozy demo taste)",
+      "prompt": "Plan my Friday night, something cozy, under $60 CAD",
+      "people": [
+        "You"
+      ],
+      "budgetCad": 60,
+      "modelAlone": [
+        {
+          "movie": {
+            "name": "When Harry Met Sally",
+            "verified": true,
+            "matchedName": "When Harry Met Sally...",
+            "id": "286A7CF7-F90D-42D7-ACE6-5521B2CFBCAB",
+            "echo": true
+          },
+          "restaurants": [
+            {
+              "name": "Terroni",
+              "verified": true,
+              "matchedName": "Terroni",
+              "id": "AA8CC6A7-4C80-4B30-BF7C-48A134B14D29",
+              "closed": false,
+              "qlooEstimateCad": 50,
+              "claimedCostCad": 35,
+              "fitsBudget": true,
+              "tasteMatch": 0.8571261799560452
+            },
+            {
+              "name": "Ramen Isshin",
+              "verified": true,
+              "matchedName": "Ramen Isshin",
+              "id": "594A765E-F6E0-47F3-A983-24CE39B010C4",
+              "closed": false,
+              "qlooEstimateCad": 30,
+              "claimedCostCad": 28,
+              "fitsBudget": true,
+              "tasteMatch": 0.8664195127916049
+            },
+            {
+              "name": "Café Cancan",
+              "verified": true,
+              "matchedName": "Café Cancan",
+              "id": "81DD0358-96B8-4359-9889-C4D13455D60D",
+              "closed": true,
+              "qlooEstimateCad": 50,
+              "claimedCostCad": 30,
+              "fitsBudget": true
+            }
+          ],
+          "artists": [
+            {
+              "name": "Bon Iver",
+              "verified": true,
+              "matchedName": "Bon Iver",
+              "id": "E51DB8F2-7A93-4746-A283-E55B5216FDE1",
+              "echo": true
+            },
+            {
+              "name": "Fleetwood Mac",
+              "verified": true,
+              "matchedName": "Fleetwood Mac",
+              "id": "B1414851-6A23-4C52-B647-2A0249B664F9",
+              "echo": true
+            },
+            {
+              "name": "Norah Jones",
+              "verified": true,
+              "matchedName": "Norah Jones",
+              "id": "CFB97CDA-1B2D-4F1A-B707-415E76AFC016",
+              "echo": true
+            }
+          ]
+        },
+        {
+          "movie": {
+            "name": "Paddington 2",
+            "verified": true,
+            "matchedName": "Paddington 2",
+            "id": "FD27AC52-4880-404E-BECF-E99DEDEAE2FC",
+            "echo": true
+          },
+          "restaurants": [
+            {
+              "name": "Pizzeria Libretto",
+              "verified": true,
+              "matchedName": "Pizzeria Libretto",
+              "id": "F4173691-AED3-4B93-A4AE-DF1377846DFE",
+              "closed": false,
+              "qlooEstimateCad": 30,
+              "claimedCostCad": 28,
+              "fitsBudget": true,
+              "tasteMatch": 0.8467459845475277
+            },
+            {
+              "name": "Ramen Isshin",
+              "verified": true,
+              "matchedName": "Ramen Isshin",
+              "id": "594A765E-F6E0-47F3-A983-24CE39B010C4",
+              "closed": false,
+              "qlooEstimateCad": 30,
+              "claimedCostCad": 22,
+              "fitsBudget": true,
+              "tasteMatch": 0.8664195127916049
+            },
+            {
+              "name": "Terroni",
+              "verified": true,
+              "matchedName": "Terroni",
+              "id": "AA8CC6A7-4C80-4B30-BF7C-48A134B14D29",
+              "closed": false,
+              "qlooEstimateCad": 50,
+              "claimedCostCad": 35,
+              "fitsBudget": true,
+              "tasteMatch": 0.8571261799560452
+            }
+          ],
+          "artists": [
+            {
+              "name": "Bon Iver",
+              "verified": true,
+              "matchedName": "Bon Iver",
+              "id": "E51DB8F2-7A93-4746-A283-E55B5216FDE1",
+              "echo": true
+            },
+            {
+              "name": "Fleetwood Mac",
+              "verified": true,
+              "matchedName": "Fleetwood Mac",
+              "id": "B1414851-6A23-4C52-B647-2A0249B664F9",
+              "echo": true
+            },
+            {
+              "name": "Norah Jones",
+              "verified": true,
+              "matchedName": "Norah Jones",
+              "id": "CFB97CDA-1B2D-4F1A-B707-415E76AFC016",
+              "echo": true
+            }
+          ]
+        }
+      ],
+      "grounded": {
+        "movie": {
+          "name": "Love Actually",
+          "tasteMatch": 0.8874753818621548
+        },
+        "dinner": {
+          "name": "La Bettola Di Terroni",
+          "tasteMatch": 0.8562523076314069,
+          "qlooEstimateCad": 50,
+          "fitsBudget": true
+        },
+        "artists": [
+          {
+            "name": "The Finches",
+            "tasteMatch": 0.9171811610195033
+          },
+          {
+            "name": "Jeff London",
+            "tasteMatch": 0.9175673076353983
+          },
+          {
+            "name": "Rita Wilson",
+            "tasteMatch": 0.9170446328189041
+          },
+          {
+            "name": "Kate Wolf",
+            "tasteMatch": 0.9187189338125661
+          }
+        ]
+      }
+    },
+    {
+      "title": "Rainy romantic Sunday (cozy demo taste)",
+      "prompt": "A rainy Sunday date night, something romantic, $40 CAD",
+      "people": [
+        "You"
+      ],
+      "budgetCad": 40,
+      "modelAlone": [
+        {
+          "movie": {
+            "name": "When Harry Met Sally",
+            "verified": true,
+            "matchedName": "When Harry Met Sally...",
+            "id": "286A7CF7-F90D-42D7-ACE6-5521B2CFBCAB",
+            "echo": true
+          },
+          "restaurants": [
+            {
+              "name": "Terroni",
+              "verified": true,
+              "matchedName": "Terroni",
+              "id": "AA8CC6A7-4C80-4B30-BF7C-48A134B14D29",
+              "closed": false,
+              "qlooEstimateCad": 50,
+              "claimedCostCad": 35,
+              "fitsBudget": false,
+              "tasteMatch": 0.8571261799560452
+            },
+            {
+              "name": "Ramen Raijin",
+              "verified": true,
+              "matchedName": "RAMEN RAIJIN",
+              "id": "F5520A46-5353-457A-9D5D-757D91304F40",
+              "closed": false,
+              "qlooEstimateCad": 30,
+              "claimedCostCad": 38,
+              "fitsBudget": true,
+              "tasteMatch": 0.8410485881989267
+            },
+            {
+              "name": "Café Cancan",
+              "verified": true,
+              "matchedName": "Café Cancan",
+              "id": "81DD0358-96B8-4359-9889-C4D13455D60D",
+              "closed": true,
+              "qlooEstimateCad": 50,
+              "claimedCostCad": 32,
+              "fitsBudget": false
+            }
+          ],
+          "artists": [
+            {
+              "name": "Bon Iver",
+              "verified": true,
+              "matchedName": "Bon Iver",
+              "id": "E51DB8F2-7A93-4746-A283-E55B5216FDE1",
+              "echo": true
+            },
+            {
+              "name": "Fleetwood Mac",
+              "verified": true,
+              "matchedName": "Fleetwood Mac",
+              "id": "B1414851-6A23-4C52-B647-2A0249B664F9",
+              "echo": true
+            },
+            {
+              "name": "Norah Jones",
+              "verified": true,
+              "matchedName": "Norah Jones",
+              "id": "CFB97CDA-1B2D-4F1A-B707-415E76AFC016",
+              "echo": true
+            }
+          ]
+        },
+        {
+          "movie": {
+            "name": "Before Sunrise (1995)",
+            "verified": true,
+            "matchedName": "Before Sunrise",
+            "id": "EDA54D37-08C7-457D-83F8-1BCE21FEDC63",
+            "echo": false,
+            "tasteMatch": 0.8954380449348729
+          },
+          "restaurants": [
+            {
+              "name": "Pizzeria Libretto",
+              "verified": true,
+              "matchedName": "Pizzeria Libretto",
+              "id": "F4173691-AED3-4B93-A4AE-DF1377846DFE",
+              "closed": false,
+              "qlooEstimateCad": 30,
+              "claimedCostCad": 35,
+              "fitsBudget": true,
+              "tasteMatch": 0.8467459845475277
+            },
+            {
+              "name": "Bar Isabel",
+              "verified": true,
+              "matchedName": "Bar Isabel",
+              "id": "64FF4394-1365-4654-9D4A-FC14281AE7EC",
+              "closed": false,
+              "qlooEstimateCad": 90,
+              "claimedCostCad": 38,
+              "fitsBudget": false,
+              "tasteMatch": 0.8727613098583903
+            },
+            {
+              "name": "Osteria Rialto",
+              "verified": true,
+              "matchedName": "Osteria Rialto",
+              "id": "C30966ED-2BFF-468A-AB1B-B5263C2A2599",
+              "closed": true,
+              "claimedCostCad": 40
+            }
+          ],
+          "artists": [
+            {
+              "name": "Norah Jones",
+              "verified": true,
+              "matchedName": "Norah Jones",
+              "id": "CFB97CDA-1B2D-4F1A-B707-415E76AFC016",
+              "echo": true
+            },
+            {
+              "name": "Bon Iver",
+              "verified": true,
+              "matchedName": "Bon Iver",
+              "id": "E51DB8F2-7A93-4746-A283-E55B5216FDE1",
+              "echo": true
+            },
+            {
+              "name": "Fleetwood Mac",
+              "verified": true,
+              "matchedName": "Fleetwood Mac",
+              "id": "B1414851-6A23-4C52-B647-2A0249B664F9",
+              "echo": true
+            }
+          ]
+        }
+      ],
+      "grounded": {
+        "movie": {
+          "name": "Bridget Jones's Diary",
+          "tasteMatch": 0.9107580486371099
+        },
+        "dinner": {
+          "name": "Ryus Noodle Bar",
+          "tasteMatch": 0.8419671958231075,
+          "qlooEstimateCad": 30,
+          "fitsBudget": true
+        },
+        "artists": [
+          {
+            "name": "Joni Mitchell",
+            "tasteMatch": 0.94226958675935
+          },
+          {
+            "name": "Simon & Garfunkel",
+            "tasteMatch": 0.938551616706124
+          },
+          {
+            "name": "Carole King",
+            "tasteMatch": 0.9281726134706785
+          },
+          {
+            "name": "Eva Cassidy",
+            "tasteMatch": 0.9136704248817558
+          }
+        ]
+      }
+    },
+    {
+      "title": "Fun night (Knives Out, Radiohead, Korean)",
+      "prompt": "Plan my Saturday night, something fun, under $50 CAD",
+      "people": [
+        "You"
+      ],
+      "budgetCad": 50,
+      "modelAlone": [
+        {
+          "movie": {
+            "name": "Glass Onion: A Knives Out Mystery",
+            "verified": true,
+            "matchedName": "Glass Onion",
+            "id": "EDA4A656-8769-43B3-8BB8-A249515F7230",
+            "echo": false,
+            "tasteMatch": 0.8173347663312712
+          },
+          "restaurants": [
+            {
+              "name": "KŌST",
+              "verified": true,
+              "matchedName": "KŌST",
+              "id": "30CA2FBA-10AB-43BB-AFA0-977F7AFE29BA",
+              "closed": false,
+              "qlooEstimateCad": 50,
+              "claimedCostCad": 40,
+              "fitsBudget": true,
+              "tasteMatch": 0.8655564836323627
+            },
+            {
+              "name": "Daldongnae Korean BBQ",
+              "verified": true,
+              "matchedName": "Daldongnae Korean BBQ",
+              "id": "2CE0D5AF-4131-42D7-9C0E-1DF2DB84B6AC",
+              "closed": false,
+              "qlooEstimateCad": 30,
+              "claimedCostCad": 45,
+              "fitsBudget": true,
+              "tasteMatch": 0.8695718787252502
+            },
+            {
+              "name": "Bar Raval",
+              "verified": true,
+              "matchedName": "Bar Raval",
+              "id": "3E6291F3-B5DE-4412-9BFF-E199F4F1145A",
+              "closed": false,
+              "qlooEstimateCad": 50,
+              "claimedCostCad": 35,
+              "fitsBudget": true,
+              "tasteMatch": 0.8622450163908361
+            }
+          ],
+          "artists": [
+            {
+              "name": "Radiohead",
+              "verified": true,
+              "matchedName": "Radiohead",
+              "id": "70CAE5BF-2F4C-445C-A3E5-4EDACFC3591C",
+              "echo": true
+            },
+            {
+              "name": "Japanese Breakfast",
+              "verified": true,
+              "matchedName": "Japanese Breakfast",
+              "id": "AA21934D-3A6E-4973-983F-28604C44E3AC",
+              "echo": false,
+              "tasteMatch": 0.8694974074021699
+            },
+            {
+              "name": "prep",
+              "verified": true,
+              "matchedName": "Prep",
+              "id": "46A03F1E-6CC4-40C8-B28D-392C3FC502D5",
+              "echo": false,
+              "tasteMatch": 0.7759835477000389
+            }
+          ]
+        },
+        {
+          "movie": {
+            "name": "Glass Onion: A Knives Out Mystery",
+            "verified": true,
+            "matchedName": "Glass Onion",
+            "id": "EDA4A656-8769-43B3-8BB8-A249515F7230",
+            "echo": false,
+            "tasteMatch": 0.8173347663312712
+          },
+          "restaurants": [
+            {
+              "name": "Daldongnae",
+              "verified": true,
+              "matchedName": "Daldongnae Korean BBQ",
+              "id": "2CE0D5AF-4131-42D7-9C0E-1DF2DB84B6AC",
+              "closed": false,
+              "qlooEstimateCad": 30,
+              "claimedCostCad": 35,
+              "fitsBudget": true,
+              "tasteMatch": 0.8695718787252502
+            },
+            {
+              "name": "Jah",
+              "verified": false,
+              "claimedCostCad": 40
+            },
+            {
+              "name": "The Federal",
+              "verified": true,
+              "matchedName": "The Federal",
+              "id": "515E1274-87CB-414F-A226-65208E54E49D",
+              "closed": false,
+              "qlooEstimateCad": 30,
+              "claimedCostCad": 45,
+              "fitsBudget": true,
+              "tasteMatch": 0.8241999329680123
+            }
+          ],
+          "artists": [
+            {
+              "name": "Flying Lotus",
+              "verified": true,
+              "matchedName": "Flying Lotus",
+              "id": "294CF67E-3032-43AC-9D1C-9D3182E92E97",
+              "echo": false,
+              "tasteMatch": 0.8147933136282484
+            },
+            {
+              "name": "Jung Jae-il",
+              "verified": true,
+              "matchedName": "Jung Jae Il",
+              "id": "41511AEC-5A78-4A04-92A3-5364A7C6E712",
+              "echo": false,
+              "tasteMatch": 0.7929499470335213
+            },
+            {
+              "name": "Parannoul",
+              "verified": true,
+              "matchedName": "파란노을 (Parannoul)",
+              "id": "CA4426C1-ACCB-46E0-ABC4-7A8D307F1B8E",
+              "echo": false,
+              "tasteMatch": 0.7933593390654704
+            }
+          ]
+        }
+      ],
+      "grounded": {
+        "movie": {
+          "name": "Murder Mystery",
+          "tasteMatch": 0.8893084306812471
+        },
+        "dinner": {
+          "name": "Korean Village Restaurant",
+          "tasteMatch": 0.8117320182340596,
+          "qlooEstimateCad": 30,
+          "fitsBudget": true
+        },
+        "artists": [
+          {
+            "name": "Junior Senior",
+            "tasteMatch": 0.8900797932445943
+          },
+          {
+            "name": "Cherub",
+            "tasteMatch": 0.8919234776773698
+          },
+          {
+            "name": "The Teenagers",
+            "tasteMatch": 0.8856419489032069
+          },
+          {
+            "name": "Matt Bennett",
+            "tasteMatch": 0.8858418719256244
+          }
+        ]
+      }
+    },
+    {
+      "title": "Date night for two (cozy taste + demo partner)",
+      "prompt": "Date night on Saturday, something fun but cozy, $60 CAD",
+      "people": [
+        "You",
+        "Your partner"
+      ],
+      "budgetCad": 60,
+      "modelAlone": [
+        {
+          "movie": {
+            "name": "Knives Out",
+            "verified": true,
+            "matchedName": "Knives Out",
+            "id": "E12149D8-3108-4019-8881-3F932AB67D38",
+            "echo": true
+          },
+          "restaurants": [
+            {
+              "name": "Kinka Izakaya",
+              "verified": true,
+              "matchedName": "KINKA IZAKAYA ORIGINAL",
+              "id": "94935AB3-F51A-4041-8F48-87E8F22F4D2A",
+              "closed": false,
+              "qlooEstimateCad": 50,
+              "claimedCostCad": 55,
+              "fitsBudget": true,
+              "tasteMatch": 0.8529827806208901
+            },
+            {
+              "name": "Miku",
+              "verified": true,
+              "matchedName": "Miku Toronto",
+              "id": "9DFD613E-72EA-4C8E-AF7D-6AC4A4505789",
+              "closed": false,
+              "qlooEstimateCad": 90,
+              "claimedCostCad": 50,
+              "fitsBudget": false,
+              "tasteMatch": 0.8846972556261794
+            },
+            {
+              "name": "Oden & Fat",
+              "verified": false,
+              "claimedCostCad": 45
+            }
+          ],
+          "artists": [
+            {
+              "name": "Phoebe Bridgers",
+              "verified": true,
+              "matchedName": "Phoebe Bridgers",
+              "id": "AFBC71A7-9439-4AB0-AB68-D14B11AAF836",
+              "echo": true
+            },
+            {
+              "name": "Bon Iver",
+              "verified": true,
+              "matchedName": "Bon Iver",
+              "id": "E51DB8F2-7A93-4746-A283-E55B5216FDE1",
+              "echo": true
+            },
+            {
+              "name": "Mitski",
+              "verified": true,
+              "matchedName": "Mitski",
+              "id": "E3BD2650-8E5C-43FB-B5A7-C1C7753A6293",
+              "echo": true
+            }
+          ]
+        },
+        {
+          "movie": {
+            "name": "When Harry Met Sally",
+            "verified": true,
+            "matchedName": "When Harry Met Sally...",
+            "id": "286A7CF7-F90D-42D7-ACE6-5521B2CFBCAB",
+            "echo": true
+          },
+          "restaurants": [
+            {
+              "name": "Pai Northern Thai Kitchen",
+              "verified": true,
+              "matchedName": "PAI Northern Thai Kitchen",
+              "id": "F93D7348-A23B-4786-877E-09BB64F75979",
+              "closed": false,
+              "qlooEstimateCad": 30,
+              "claimedCostCad": 45,
+              "fitsBudget": true,
+              "tasteMatch": 0.8440834916694342
+            },
+            {
+              "name": "Omai",
+              "verified": true,
+              "matchedName": "Omai",
+              "id": "5AA3302F-1761-4101-AF74-3B7BC026482D",
+              "closed": true,
+              "qlooEstimateCad": 30,
+              "claimedCostCad": 50,
+              "fitsBudget": true
+            },
+            {
+              "name": "Gia Sandwich",
+              "verified": false,
+              "claimedCostCad": 35
+            }
+          ],
+          "artists": [
+            {
+              "name": "Fleetwood Mac",
+              "verified": true,
+              "matchedName": "Fleetwood Mac",
+              "id": "B1414851-6A23-4C52-B647-2A0249B664F9",
+              "echo": true
+            },
+            {
+              "name": "Bon Iver",
+              "verified": true,
+              "matchedName": "Bon Iver",
+              "id": "E51DB8F2-7A93-4746-A283-E55B5216FDE1",
+              "echo": true
+            },
+            {
+              "name": "Phoebe Bridgers",
+              "verified": true,
+              "matchedName": "Phoebe Bridgers",
+              "id": "AFBC71A7-9439-4AB0-AB68-D14B11AAF836",
+              "echo": true
+            }
+          ]
+        }
+      ],
+      "grounded": {
+        "movie": {
+          "name": "500 Days of Summer",
+          "tasteMatch": 0.8466147732862678
+        },
+        "dinner": {
+          "name": "La Bettola Di Terroni",
+          "tasteMatch": 0.8562523076314069,
+          "qlooEstimateCad": 50,
+          "fitsBudget": true
+        },
+        "artists": [
+          {
+            "name": "The Highwomen",
+            "tasteMatch": 0.9161917468802128
+          },
+          {
+            "name": "Sibylle Baier",
+            "tasteMatch": 0.8417149823187856
+          },
+          {
+            "name": "Lizzy McAlpine",
+            "tasteMatch": 0.839820399104905
+          },
+          {
+            "name": "Ora Cogan",
+            "tasteMatch": 0.8053020174501484
+          },
+          {
+            "name": "Orla Gartland",
+            "tasteMatch": 0.8235944922505551
+          }
+        ]
+      }
+    }
+  ]
+}
